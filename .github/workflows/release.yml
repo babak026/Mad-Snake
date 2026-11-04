@@ -42,14 +42,11 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          build-root-directory: app
 
       - name: Make gradlew executable
-        run: chmod +x app/gradlew
+        run: chmod +x gradlew
 
       - name: Build APK
-        working-directory: app
         run: ./gradlew assembleDebug
 
       - name: Determine version tag
@@ -66,9 +63,9 @@ jobs:
 
       - name: Prepare APK
         run: |
-          APK_PATH=$(find app -name "*-debug.apk" | head -n 1)
+          APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
           if [ -z "$APK_PATH" ]; then
-            APK_PATH=$(find app -name "*.apk" | head -n 1)
+            APK_PATH=$(find app -name "*-debug.apk" | head -n 1)
           fi
           if [ -z "$APK_PATH" ]; then
             echo "Error: No APK found after build!"
