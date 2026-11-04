@@ -12,8 +12,22 @@
   <body>
     <div class="device">
       <div class="bar">
-        <span>SCORE <b id="sc">0</b></span
-        ><span>MAD SNAKE</span><span>HI <b id="hi">0</b></span>
+        <div class="bar-group">
+          <span>SCORE <b id="sc">0</b></span>
+          <span id="bar-diff" class="diff-tag">NORMAL</span>
+        </div>
+        <span class="bar-title">MAD SNAKE</span>
+        <div class="bar-group bar-right">
+          <span>HI <b id="hi">0</b></span>
+          <button
+            type="button"
+            id="bar-pause"
+            class="bar-btn"
+            aria-label="Pause or open menu"
+          >
+            ⏸
+          </button>
+        </div>
       </div>
       <div class="screen">
         <canvas
@@ -22,18 +36,156 @@
           height="400"
           aria-label="Snake game board"
         ></canvas>
+
+        <!-- Main Menu Overlay -->
+        <div
+          id="menu-overlay"
+          class="overlay"
+          role="dialog"
+          aria-label="Main Menu"
+        >
+          <div class="menu-title-block">
+            <div class="menu-logo-snake">■ ■ ■ ■ ▣</div>
+            <h1 class="menu-title">MAD SNAKE</h1>
+            <div class="menu-subtitle">RETRO ARCADE</div>
+          </div>
+
+          <div class="menu-section">
+            <div class="section-label">DIFFICULTY</div>
+            <div
+              class="diff-group"
+              role="radiogroup"
+              aria-label="Select difficulty"
+            >
+              <button
+                type="button"
+                class="diff-btn"
+                data-diff="easy"
+                role="radio"
+                aria-checked="false"
+              >
+                EASY
+              </button>
+              <button
+                type="button"
+                class="diff-btn active"
+                data-diff="normal"
+                role="radio"
+                aria-checked="true"
+              >
+                NORMAL
+              </button>
+              <button
+                type="button"
+                class="diff-btn"
+                data-diff="hard"
+                role="radio"
+                aria-checked="false"
+              >
+                HARD
+              </button>
+            </div>
+            <div id="diff-desc" class="diff-desc">
+              Speed: Standard · 4 Foods · Classic Mad Snake
+            </div>
+          </div>
+
+          <div class="menu-record">BEST: <b id="menu-hi">0</b></div>
+
+          <button type="button" id="start-btn" class="btn-action">
+            ▶ START GAME
+          </button>
+
+          <div class="menu-hint">
+            Press [ENTER] / [SPACE] or Tap Start · ◀ ▶ to change difficulty
+          </div>
+        </div>
+
+        <!-- Pause Overlay -->
+        <div
+          id="pause-overlay"
+          class="overlay hidden"
+          role="dialog"
+          aria-label="Game Paused"
+        >
+          <h2 class="overlay-title">PAUSED</h2>
+          <div class="stats-box">
+            <div>SCORE: <b id="pause-sc">0</b></div>
+            <div>DIFF: <b id="pause-diff">NORMAL</b></div>
+          </div>
+          <div class="overlay-actions">
+            <button type="button" id="resume-btn" class="btn-action">
+              RESUME
+            </button>
+            <button
+              type="button"
+              id="restart-btn"
+              class="btn-action btn-secondary"
+            >
+              RESTART
+            </button>
+            <button
+              type="button"
+              id="menu-from-pause-btn"
+              class="btn-action btn-secondary"
+            >
+              MAIN MENU
+            </button>
+          </div>
+        </div>
+
+        <!-- Game Over Overlay -->
+        <div
+          id="gameover-overlay"
+          class="overlay hidden"
+          role="dialog"
+          aria-label="Game Over"
+        >
+          <h2 class="overlay-title">GAME OVER</h2>
+          <div id="gameover-newhi" class="new-record-badge hidden">
+            ★ NEW HIGH SCORE! ★
+          </div>
+          <div class="stats-box">
+            <div>SCORE: <b id="go-sc">0</b></div>
+            <div>BEST: <b id="go-hi">0</b></div>
+            <div>DIFF: <b id="go-diff">NORMAL</b></div>
+          </div>
+          <div class="overlay-actions">
+            <button type="button" id="play-again-btn" class="btn-action">
+              PLAY AGAIN
+            </button>
+            <button
+              type="button"
+              id="menu-from-go-btn"
+              class="btn-action btn-secondary"
+            >
+              MAIN MENU
+            </button>
+          </div>
+        </div>
       </div>
+
       <div class="pad" aria-label="Controls">
         <button class="u" data-d="U" aria-label="Up">▲</button>
         <button class="l" data-d="L" aria-label="Left">◀</button>
         <button class="d" data-d="D" aria-label="Down">▼</button>
         <button class="r" data-d="R" aria-label="Right">▶</button>
+        <button class="p" id="pad-pause" aria-label="Pause">⏸</button>
       </div>
       <div class="hint">
-        Arrows / WASD to steer · Space to pause · Swipe on touch · Walls wrap
-        around · It gets madder as you eat
+        Arrows / WASD to steer · Space / ⏸ to pause · Swipe on touch · Multiple
+        foods · Walls wrap around
       </div>
     </div>
+    <script src="./js/config.js"></script>
+    <script src="./js/sound.js"></script>
+    <script src="./js/storage.js"></script>
+    <script src="./js/snake.js"></script>
+    <script src="./js/food.js"></script>
+    <script src="./js/renderer.js"></script>
+    <script src="./js/ui.js"></script>
+    <script src="./js/input.js"></script>
+    <script src="./js/game.js"></script>
     <script src="./js/script.js"></script>
   </body>
 </html>
