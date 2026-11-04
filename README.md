@@ -43,9 +43,9 @@ git push origin v1.0.0
 ## Project structure
 
 ```
-app/src/main/assets/index.html     the game (HTML, CSS, JavaScript)
+app/src/main/assets/index.html          the game (HTML, CSS, JavaScript)
 app/src/main/java/.../MainActivity.kt   WebView that opens the game
-.github/workflows/release.yml      builds and publishes the APK
+.github/workflows/release.yml           builds and publishes the APK
 ```
 
 ## License

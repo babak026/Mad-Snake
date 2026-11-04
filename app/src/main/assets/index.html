@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mad Snake</title>
+<style>
+:root{--bg:#8a9a5b;--lcd:#9bb06a;--ink:#1f2a12;--case:#2b2f26;--case-ink:#c9d1b8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#5d6b3a;--lcd:#7c9150;--ink:#141c08;--case:#15170f;--case-ink:#a9b394}}
+:root[data-theme="dark"]{--bg:#5d6b3a;--lcd:#7c9150;--ink:#141c08;--case:#15170f;--case-ink:#a9b394}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0}
+body{background:var(--case);color:var(--case-ink);font-family:"Courier New",Courier,monospace;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.device{display:flex;flex-direction:column;align-items:center;gap:10px;width:min(96vw,460px)}
+.bar{display:flex;justify-content:space-between;width:100%;font-weight:bold;font-size:clamp(14px,3.6vw,18px);letter-spacing:1px}
+.screen{background:var(--lcd);border:6px solid var(--ink);border-radius:6px;padding:6px;width:100%;box-shadow:inset 0 0 0 2px rgba(0,0,0,.15)}
+canvas{display:block;width:100%;height:auto;image-rendering:pixelated;background:var(--lcd)}
+.pad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(2,56px);gap:6px;margin-top:4px}
+.pad button{background:var(--bg);color:var(--ink);border:3px solid var(--ink);border-radius:10px;font-size:22px;font-weight:bold;cursor:pointer;font-family:inherit}
+.pad button:active{transform:translateY(2px);filter:brightness(.9)}
+.pad button:focus-visible{outline:3px solid var(--case-ink);outline-offset:2px}
+.u{grid-column:2;grid-row:1}.l{grid-column:1;grid-row:2}.d{grid-column:2;grid-row:2}.r{grid-column:3;grid-row:2}
+.hint{font-size:12px;opacity:.75;text-align:center}
+@media (hover:hover) and (pointer:fine){.pad{display:none}}
+</style>
+</head>
+<body>
+<div class="device">
+  <div class="bar"><span>SCORE <b id="sc">0</b></span><span>MAD SNAKE</span><span>HI <b id="hi">0</b></span></div>
+  <div class="screen"><canvas id="c" width="400" height="400" aria-label="Snake game board"></canvas></div>
+  <div class="pad" aria-label="Controls">
+    <button class="u" data-d="U" aria-label="Up">▲</button>
+    <button class="l" data-d="L" aria-label="Left">◀</button>
+    <button class="d" data-d="D" aria-label="Down">▼</button>
+    <button class="r" data-d="R" aria-label="Right">▶</button>
+  </div>
+  <div class="hint">Arrows / WASD to steer · Space to pause · Swipe on touch · Walls wrap around · It gets madder as you eat</div>
+</div>
+<script>
+(function(){
+  var N=20,C=document.getElementById('c'),X=C.getContext('2d'),S=C.width/N;
+  var scEl=document.getElementById('sc'),hiEl=document.getElementById('hi');
+  var snake,dir,queue,food,score,speed,timer,state='ready',hi=0,flash=0,actx=null;
+  try{hi=parseInt(localStorage.getItem('madsnake-hi')||'0',10)||0}catch(e){}
+  hiEl.textContent=hi;
+  function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+  function beep(f,d){
+    try{
+      actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+      var o=actx.createOscillator(),g=actx.createGain();
+      o.type='square';o.frequency.value=f;g.gain.value=.04;
+      o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+d);
+    }catch(e){}
+  }
+  function reset(){
+    snake=[{x:10,y:10},{x:9,y:10},{x:8,y:10}];dir='R';queue=[];score=0;speed=140;
+    scEl.textContent=0;placeFood();
+  }
+  function placeFood(){
+    var f;
+    do{f={x:Math.floor(Math.random()*N),y:Math.floor(Math.random()*N)}}
+    while(snake.some(function(s){return s.x===f.x&&s.y===f.y}));
+    food=f;
+  }
+  var V={U:[0,-1],D:[0,1],L:[-1,0],R:[1,0]},OPP={U:'D',D:'U',L:'R',R:'L'};
+  function turn(d){
+    if(state==='ready'||state==='over'){start();}
+    var last=queue.length?queue[queue.length-1]:dir;
+    if(d!==last&&d!==OPP[last]&&queue.length<3)queue.push(d);
+  }
+  function start(){
+    if(state==='running')return;
+    reset();state='running';loop();
+  }
+  function loop(){clearTimeout(timer);timer=setTimeout(function(){step();if(state==='running')loop()},speed)}
+  function step(){
+    if(queue.length)dir=queue.shift();
+    var h=snake[0],v=V[dir],n={x:(h.x+v[0]+N)%N,y:(h.y+v[1]+N)%N};   // walls wrap around
+    if(snake.some(function(s,i){return i<snake.length-1&&s.x===n.x&&s.y===n.y})){return die()}
+    snake.unshift(n);
+    if(n.x===food.x&&n.y===food.y){
+      score+=10;scEl.textContent=score;
+      speed=Math.max(45,speed-6);   // gets madder
+      beep(880,.08);placeFood();
+    }else snake.pop();
+    draw();
+  }
+  function die(){
+    state='over';beep(120,.4);flash=6;
+    if(score>hi){hi=score;hiEl.textContent=hi;try{localStorage.setItem('madsnake-hi',String(hi))}catch(e){}}
+    draw();
+  }
+  function px(x,y,fill){
+    X.fillStyle=fill;X.fillRect(x*S+1,y*S+1,S-2,S-2);
+    X.clearRect(x*S+4,y*S+4,S-8,S-8);X.fillRect(x*S+5,y*S+5,S-10,S-10);
+  }
+  function draw(){
+    var ink=css('--ink'),lcd=css('--lcd');
+    X.fillStyle=lcd;X.fillRect(0,0,C.width,C.height);
+    // faint grid like an LCD
+    X.fillStyle='rgba(0,0,0,.05)';
+    for(var i=0;i<N;i++)for(var j=0;j<N;j++)X.fillRect(i*S+S/2-1,j*S+S/2-1,2,2);
+    px(food.x,food.y,ink);
+    X.clearRect(food.x*S+S/2-3,food.y*S+S/2-3,6,6);
+    X.fillStyle=lcd;X.fillRect(food.x*S+S/2-3,food.y*S+S/2-3,6,6);
+    snake.forEach(function(s,i){
+      X.fillStyle=ink;X.fillRect(s.x*S+2,s.y*S+2,S-4,S-4);
+      if(i===0){X.fillStyle=lcd;X.fillRect(s.x*S+S/2-2,s.y*S+S/2-2,4,4)}
+    });
+    if(state==='ready'||state==='over'||state==='paused'){
+      X.fillStyle=ink;X.textAlign='center';
+      X.font='bold 34px "Courier New",monospace';
+      var big=state==='over'?'GAME OVER':state==='paused'?'PAUSED':'MAD SNAKE';
+      X.fillText(big,C.width/2,C.height/2-8);
+      X.font='bold 16px "Courier New",monospace';
+      X.fillText(state==='paused'?'Space to resume':'Press any arrow to start',C.width/2,C.height/2+22);
+    }
+    if(flash>0){
+      flash--;
+      X.fillStyle=ink;X.globalAlpha=flash%2?.35:0;X.fillRect(0,0,C.width,C.height);X.globalAlpha=1;
+      if(flash>0)setTimeout(draw,90);
+    }
+  }
+  function pause(){
+    if(state==='running'){state='paused';clearTimeout(timer);draw()}
+    else if(state==='paused'){state='running';loop()}
+    else start();
+  }
+  document.addEventListener('keydown',function(e){
+    var k=e.key,m={ArrowUp:'U',ArrowDown:'D',ArrowLeft:'L',ArrowRight:'R',w:'U',W:'U',s:'D',S:'D',a:'L',A:'L',d:'R',D:'R'};
+    if(m[k]){e.preventDefault();if(state!=='paused')turn(m[k])}
+    else if(k===' '||k==='p'||k==='P'){e.preventDefault();pause()}
+    else if(k==='Enter'&&state!=='running'){start()}
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.pad button'),function(b){
+    b.addEventListener('pointerdown',function(e){e.preventDefault();turn(b.getAttribute('data-d'))});
+  });
+  // swipe
+  var sx,sy;
+  document.addEventListener('touchstart',function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(sx==null)return;
+    var t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+    if(Math.max(Math.abs(dx),Math.abs(dy))<24){if(state!=='running')start();sx=null;return}
+    turn(Math.abs(dx)>Math.abs(dy)?(dx>0?'R':'L'):(dy>0?'D':'U'));sx=null;
+  });
+  document.addEventListener('visibilitychange',function(){if(document.hidden&&state==='running')pause()});
+  reset();draw();
+})();
+</script>
+</body>
+</html>
