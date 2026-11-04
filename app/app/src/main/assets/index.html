@@ -19,7 +19,7 @@ canvas{display:block;width:100%;height:auto;image-rendering:pixelated;background
 .pad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(2,56px);gap:6px;margin-top:4px}
 .pad button{background:var(--bg);color:var(--ink);border:3px solid var(--ink);border-radius:10px;font-size:22px;font-weight:bold;cursor:pointer;font-family:inherit}
 .pad button:active{transform:translateY(2px);filter:brightness(.9)}
-.pad button:focus-visible,.go:focus-visible{outline:3px solid var(--case-ink);outline-offset:2px}
+.pad button:focus-visible{outline:3px solid var(--case-ink);outline-offset:2px}
 .u{grid-column:2;grid-row:1}.l{grid-column:1;grid-row:2}.d{grid-column:2;grid-row:2}.r{grid-column:3;grid-row:2}
 .hint{font-size:12px;opacity:.75;text-align:center}
 @media (hover:hover) and (pointer:fine){.pad{display:none}}

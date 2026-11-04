@@ -4,7 +4,7 @@ A classic Nokia-style snake game. It speeds up every time you eat, and the snake
 
 ## Play
 
-- **In a browser:** open `app/src/main/assets/index.html` by double-clicking it. No install or internet needed.
+- **In a browser:** open `app/app/src/main/assets/index.html` by double-clicking it. No install or internet needed.
 - **On Android:** download the latest `MadSnake-*.apk` from the [Releases](../../releases) page and install it. You may need to allow installs from unknown sources.
 
 ## Controls
@@ -26,10 +26,10 @@ A classic Nokia-style snake game. It speeds up every time you eat, and the snake
 
 You need Android Studio.
 
-1. Clone this repository and open it in Android Studio.
+1. Clone this repository and open the `app` folder in Android Studio.
 2. Wait for the Gradle sync to finish.
 3. Choose **Build → Build Bundle(s) / APK(s) → Build APK(s)**.
-4. The APK is at `app/build/outputs/apk/debug/app-debug.apk`.
+4. The APK is at `app/app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Automatic releases
 
@@ -43,9 +43,9 @@ git push origin v1.0.0
 ## Project structure
 
 ```
-app/src/main/assets/index.html     the game (HTML, CSS, JavaScript)
-app/src/main/java/.../MainActivity.kt   WebView that opens the game
-.github/workflows/release.yml      builds and publishes the APK
+app/app/src/main/assets/index.html          the game (HTML, CSS, JavaScript)
+app/app/src/main/java/.../MainActivity.kt   WebView that opens the game
+.github/workflows/release.yml               builds and publishes the APK
 ```
 
 ## License
