@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "v*"
+  pull_request:
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
       tag_name:
@@ -52,14 +54,37 @@ jobs:
       - name: Determine version tag
         id: vars
         run: |
+          git fetch --tags --force
+
+          TARGET_COMMIT="${{ github.event.pull_request.head.sha }}"
+          if [ -z "$TARGET_COMMIT" ]; then
+            TARGET_COMMIT="HEAD"
+          fi
+
+          CURRENT_TAG=$(git tag --points-at "$TARGET_COMMIT" | grep '^v' | head -n 1)
+          if [ -z "$CURRENT_TAG" ]; then
+            CURRENT_TAG=$(git tag --points-at "$TARGET_COMMIT" | head -n 1)
+          fi
+
           if [ -n "${{ inputs.tag_name }}" ]; then
             TAG="${{ inputs.tag_name }}"
+            SHOULD_RELEASE="true"
           elif [ "${{ github.ref_type }}" = "tag" ]; then
             TAG="${{ github.ref_name }}"
+            SHOULD_RELEASE="true"
+          elif [ -n "$CURRENT_TAG" ]; then
+            TAG="$CURRENT_TAG"
+            SHOULD_RELEASE="true"
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            TAG="pr-${{ github.event.pull_request.number }}-${{ github.run_number }}"
+            SHOULD_RELEASE="false"
           else
             TAG="v1.0.${{ github.run_number }}"
+            SHOULD_RELEASE="false"
           fi
+
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "should_release=${SHOULD_RELEASE}" >> "$GITHUB_OUTPUT"
 
       - name: Prepare APK
         run: |
@@ -81,6 +106,7 @@ jobs:
           path: MadSnake-${{ steps.vars.outputs.tag }}.apk
 
       - name: Create GitHub Release
+        if: steps.vars.outputs.should_release == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.vars.outputs.tag }}
